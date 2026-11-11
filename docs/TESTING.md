@@ -1,29 +1,18 @@
 # Testing
 
-## Running
+The test module is `tests/test_notion_db_sync.py`. It uses `pytest` and a local `FakePort` plus `make_pager` helper; no network or real Notion account is required.
 
-```sh
-uv run pytest --cov=notion_db_sync   # tests with coverage report
-uv run python scripts/check.py      # every gate, as CI and the factory run it
+It contains acceptance tests:
+
+- `test_page_to_record_acceptance`: `page_to_record` on the Launch plan page returns sorted keys and values.
+- `test_render_markdown_acceptance`: `render_markdown(..., title_property="Name", body_property="Notes")` returns the exact front matter and body string.
+- `test_file_name_slug_acceptance`: `file_name_for_page` returns `launch-plan-1a2b3c4d.md`.
+- `test_first_and_second_sync`: first sync creates two files and `.notion-sync.json`; an immediate second sync returns `unchanged=2`.
+
+The same module also exercises remote updates, conflicts when the local file changed, deletion for missing, trashed, or archived pages, pagination cursors and `max_pages`/`max_records` errors, and `HttpNotionPort` request shape and error codes (`unauthorized`, `rate_limited`, `response_too_large`). It asserts that no error or event contains the token `secret_x`.
+
+Run:
+
+```bash
+pytest
 ```
-
-## Policy
-
-- Branch coverage of `src/notion_db_sync` must stay at or above 80 %; the gate fails below it.
-- Tests exercise the public API (`import notion_db_sync`) and assert every observable effect:
-  return values, raised exceptions and their messages.
-- Each bug fix starts with a failing test that reproduces it.
-- Tests are deterministic: no network, no wall clock, no dependence on test order.
-
-## Tiers
-
-- Local tier (every gate run, coverage measured here): unit and property tests, plus conformance on small
-  fixtures kept in the repository.
-- CI tier: conformance that needs an external tool or a download. Mark them `@pytest.mark.conformance`; `scripts/check.py` deselects them locally
-  (unless `FABRICA_CI=1`). The CI `conformance` job sets `FABRICA_CI=1` and runs the full suite. Tools are installed
-  by the optional `ci/conformance-setup.sh` (bash, CI only; verify every download against a pinned SHA-256), and
-  tagged tests skip cleanly when their tool is missing.
-
-## Layout
-
-`tests/test_<module>.py` mirrors each public module. Shared fixtures go in `tests/conftest.py`.

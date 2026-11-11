@@ -9,4 +9,5 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- feat: implement Notion database to Markdown sync with front matter, incremental updates, conflict detection, deletion mirroring, and a typed error class
 - Initial project structure from the factory utility template.
